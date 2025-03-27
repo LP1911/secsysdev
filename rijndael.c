@@ -54,8 +54,11 @@ static const unsigned char inv_s_box[256] = {
 /*
  * Operations used when encrypting a block
  */
+ // Replaces each individual byte within the block with a byte from the S-BOX table
 void sub_bytes(unsigned char *block) {
-  // TODO: Implement me!
+    for (int i = 0; i < 16; i++) {
+        block[i] = s_box[block[i]];
+    }
 }
 
 void shift_rows(unsigned char *block) {
@@ -69,8 +72,12 @@ void mix_columns(unsigned char *block) {
 /*
  * Operations used when decrypting a block
  */
+ 
+ // Replaces each individual byte within the block with a byte from the Inverse S-BOX table
 void invert_sub_bytes(unsigned char *block) {
-  // TODO: Implement me!
+      for (int i = 0; i < 16; i++) {
+        block[i] = inv_s_box[block[i]];
+    }
 }
 
 void invert_shift_rows(unsigned char *block) {
