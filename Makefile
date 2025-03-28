@@ -1,17 +1,22 @@
-CC ?= cc
+# Switched the Makefile to work with windows as a .dll with MinGW64
 
-.PHONY: all
-all: main rijndael.so
+CC      = gcc
+CFLAGS  = -Wall -m64
+DLLNAME = rijndael.dll
 
-main: rijndael.o main.c
-	$(CC) -o main main.c rijndael.o
+# Source files for the AES library
+SRCS    = rijndael.c
+OBJS    = $(SRCS:.c=.o)
 
-rijndael.o: rijndael.c rijndael.h
-	$(CC) -o rijndael.o -fPIC -c rijndael.c
+all: $(DLLNAME)
 
-rijndael.so: rijndael.o
-	$(CC) -o rijndael.so -shared rijndael.o
+# Link the object files into a shared library (DLL)
+$(DLLNAME): $(OBJS)
+	$(CC) -shared -m64 -o $(DLLNAME) $(OBJS)
+
+# Compile .c files into .o files
+%.o: %.c rijndael.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o *.so
-	rm -f main
+	rm -f $(DLLNAME) $(OBJS)
