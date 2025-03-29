@@ -62,7 +62,36 @@ void sub_bytes(unsigned char *block) {
 }
 
 void shift_rows(unsigned char *block) {
-  // TODO: Implement me!
+    unsigned char temp[16];
+
+    // Row 0 Isn't shifted
+    temp[0] = block[0];
+    temp[1] = block[1];
+    temp[2] = block[2];
+    temp[3] = block[3];
+
+    // Row 1 is shifted left by 1
+    temp[4] = block[5];
+    temp[5] = block[6];
+    temp[6] = block[7];
+    temp[7] = block[4];
+
+    // Row 2 is shifted left by 2
+    temp[8] = block[10];
+    temp[9] = block[11];
+    temp[10] = block[8];
+    temp[11] = block[9];
+
+    // Row 3 is shifted left by 3
+    temp[12] = block[15];
+    temp[13] = block[12];
+    temp[14] = block[13];
+    temp[15] = block[14];
+
+    // temp is copied back into the block
+    for (int i = 0; i < 16; i++) {
+        block[i] = temp[i];
+    }
 }
 
 void mix_columns(unsigned char *block) {
@@ -81,7 +110,36 @@ void invert_sub_bytes(unsigned char *block) {
 }
 
 void invert_shift_rows(unsigned char *block) {
-  // TODO: Implement me!
+    unsigned char temp[16];
+
+    // Row 0: Isn't shifted
+    temp[0] = block[0];
+    temp[1] = block[1];
+    temp[2] = block[2];
+    temp[3] = block[3];
+
+    // Row 1 is shifted right by 1
+    temp[4] = block[7];
+    temp[5] = block[4];
+    temp[6] = block[5];
+    temp[7] = block[6];
+
+    // Row 2 is shifted right by 2
+    temp[8] = block[10];
+    temp[9] = block[11];
+    temp[10] = block[8];
+    temp[11] = block[9];
+
+    // Row 3 is shifted right by 3
+    temp[12] = block[13];
+    temp[13] = block[14];
+    temp[14] = block[15];
+    temp[15] = block[12];
+
+    // temp is copied back into the block
+    for (int i = 0; i < 16; i++) {
+        block[i] = temp[i];
+    }
 }
 
 void invert_mix_columns(unsigned char *block) {

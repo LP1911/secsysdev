@@ -13,6 +13,10 @@
 void sub_bytes(unsigned char *block);
 void invert_sub_bytes(unsigned char *block);
 
+void shift_rows(unsigned char *block);
+void invert_shift_rows(unsigned char *block);
+
+
 /*
  * These should be the main encrypt/decrypt functions (i.e. the main
  * entry point to the library for programmes hoping to use it to
