@@ -95,14 +95,34 @@ void shift_rows(unsigned char *block) {
   }
 }
 
-
-void mix_columns(unsigned char *block) {
-  // TODO: Implement me!
+// If the high bit is set, shift left and XOR with 0x1B else just shift left
+static unsigned char xtime(unsigned char a) {
+  return (a & 0x80) ? ((a << 1) ^ 0x1B) : (a << 1);
 }
 
-/*
- * Operations used when decrypting a block
- */
+// Col points to 4 bytes which then has the mix_columns formula applied
+static void mix_single_column(unsigned char *col) {
+
+  unsigned char a0 = col[0];
+  unsigned char a1 = col[1];
+  unsigned char a2 = col[2];
+  unsigned char a3 = col[3];
+
+  unsigned char t = a0 ^ a1 ^ a2 ^ a3;
+  unsigned char u = a0;
+  col[0] ^= t ^ xtime(a0 ^ a1);
+  col[1] ^= t ^ xtime(a1 ^ a2);
+  col[2] ^= t ^ xtime(a2 ^ a3);
+  col[3] ^= t ^ xtime(a3 ^ u);
+}
+
+// Blocks are set into 4 columns with mix_single_column called for each
+void mix_columns(unsigned char *block) {
+  
+  for (int c = 0; c < 4; c++) {
+      mix_single_column(&block[c * 4]);
+  }
+}
  
  // Replaces each individual byte within the block with a byte from the Inverse S-BOX table
 void invert_sub_bytes(unsigned char *block) {
@@ -144,9 +164,29 @@ void invert_shift_rows(unsigned char *block) {
   }
 }
 
-
 void invert_mix_columns(unsigned char *block) {
-  // TODO: Implement me!
+  for (int c = 0; c < 4; c++) {
+      unsigned char *col = &block[c * 4];
+
+      // u and v correct the column
+      unsigned char a0 = col[0];
+      unsigned char a1 = col[1];
+      unsigned char a2 = col[2];
+      unsigned char a3 = col[3];
+
+      unsigned char u = xtime(xtime(a0 ^ a2));
+      unsigned char v = xtime(xtime(a1 ^ a3));
+
+      col[0] ^= u;
+      col[1] ^= v;
+      col[2] ^= u;
+      col[3] ^= v;
+  }
+
+  // mix_single_column is applied again 
+  for (int c = 0; c < 4; c++) {
+      mix_single_column(&block[c * 4]);
+  }
 }
 
 /*
