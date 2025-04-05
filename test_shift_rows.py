@@ -38,7 +38,7 @@ class TestShiftRows(unittest.TestCase):
             pyResults = matrix2bytes(mat)
             
             self.assertEqual(cResults, pyResults, 
-                             f"shift_rows mismatch.\n"
+                             f"shift_rows do not match.\n"
                              f"Input: {block}\nC out: {cResults}\nPy out: {pyResults}")
 
     def test_invert_shift_rows(self):
@@ -54,7 +54,7 @@ class TestShiftRows(unittest.TestCase):
             pyResults = matrix2bytes(mat)
             
             self.assertEqual(cResults, pyResults,
-                             f"invert_shift_rows mismatch.\n"
+                             f"invert_shift_rows do not match.\n"
                              f"Input: {block}\nC out: {cResults}\nPy out: {pyResults}")
 
 if __name__ == '__main__':
