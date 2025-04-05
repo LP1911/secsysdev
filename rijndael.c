@@ -289,17 +289,62 @@ unsigned char *expand_key(unsigned char *cipher_key) {
 }
 
 unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
-    // TODO: Implement me!
-    unsigned char *output =
-        (unsigned char *)malloc(sizeof(unsigned char) * BLOCK_SIZE);
+    //Expand the key to get 176 bytes
+    unsigned char *expanded = expand_key(key);
+
+    // Copy the plaintext into a local 16-byte state
+    unsigned char state[16];
+    for(int i=0; i<16; i++){
+        state[i] = plaintext[i];
+    }
+
+    add_round_key(state, &expanded[0]);
+
+    for(int round=1; round<=9; round++){
+        sub_bytes(state);
+        shift_rows(state);
+        mix_columns(state);
+        add_round_key(state, &expanded[round * 16]);
+    }
+    sub_bytes(state);
+    shift_rows(state);
+    add_round_key(state, &expanded[160]);
+
+    // Set the output to the state
+    unsigned char *output = malloc(16);
+    for(int i=0; i<16; i++){
+        output[i] = state[i];
+    }
+
+    // Free the expanded key
+    free(expanded);
+
     return output;
-  }
-  
-  unsigned char *aes_decrypt_block(unsigned char *ciphertext,
-                                   unsigned char *key) {
-    // TODO: Implement me!
-    unsigned char *output =
-        (unsigned char *)malloc(sizeof(unsigned char) * BLOCK_SIZE);
+}
+
+
+unsigned char *aes_decrypt_block(unsigned char *ciphertext, unsigned char *key) {
+    unsigned char *expanded = expand_key(key);
+    unsigned char state[16];
+    for(int i=0; i<16; i++){
+        state[i] = ciphertext[i];
+    }
+    add_round_key(state, &expanded[160]);
+    invert_shift_rows(state);
+    invert_sub_bytes(state);
+    for(int round=9; round>=1; round--){
+        add_round_key(state, &expanded[round*16]);
+        invert_mix_columns(state);
+        invert_shift_rows(state);
+        invert_sub_bytes(state);
+    }
+
+    add_round_key(state, &expanded[0]);
+
+    unsigned char *output = malloc(16);
+    for(int i=0; i<16; i++){
+        output[i] = state[i];
+    }
+    free(expanded);
     return output;
-  }
-  
+}

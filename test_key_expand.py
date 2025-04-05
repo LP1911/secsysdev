@@ -32,7 +32,7 @@ class TestExpandKey(unittest.TestCase):
             pyBytes = bytes(python_expanded)
 
             self.assertEqual(cResults, pyBytes,
-                             "Mismatch in expand_key results")
+                             "expand_key did not match")
 
 if __name__ == '__main__':
     unittest.main()
