@@ -6,7 +6,9 @@
 */
 
 #include <stdlib.h>
+#include <string.h> 
 #include "rijndael.h"
+
 
 // S-BOX table pulled from python code (AES Values)
 // Used as the lookup table within sub_bytes
@@ -210,10 +212,81 @@ void add_round_key(unsigned char *block, unsigned char *round_key) {
     }
 }
 
-unsigned char *expand_key(unsigned char *cipher_key) {
-    return 0;
+static const unsigned char r_con[10] = {
+    0x01, 0x02, 0x04, 0x08, 0x10,
+    0x20, 0x40, 0x80, 0x1B, 0x36
+};
+
+
+// Rotate word (a0->a1)
+static void rotate_word(unsigned char *word) {
+    unsigned char temp = word[0];
+    word[0] = word[1];
+    word[1] = word[2];
+    word[2] = word[3];
+    word[3] = temp;
 }
 
+// Puts s_box onto each of the 4 bytes
+static void sub_word(unsigned char *word) {
+    for(int i=0; i<4; i++){
+        word[i] = s_box[word[i]];
+    }
+}
+
+// Takes a 16 byte key and returns a pointer to 176 bytes which has the 11 round keys
+unsigned char *expand_key(unsigned char *cipher_key) {
+    unsigned char *expanded = (unsigned char *)malloc(176);
+    if(!expanded) {
+        // Deals with out of memory issue
+        return NULL;
+    }
+
+    memcpy(expanded, cipher_key, 16);
+
+    // We already have 4 words. We need 40 more to get 44 total (for AES-128).
+    int current_word = 4;
+    int total_words = 44;
+    int rcon_index = 0;
+
+    unsigned char temp[4];
+
+    while(current_word < total_words) {
+        // Take the previous word into temp
+        int word_offset = (current_word - 1) * 4;
+        temp[0] = expanded[word_offset + 0];
+        temp[1] = expanded[word_offset + 1];
+        temp[2] = expanded[word_offset + 2];
+        temp[3] = expanded[word_offset + 3];
+
+        // For each 4 words, apply rotate, sub_word, and Rcon
+        if(current_word % 4 == 0) {
+            rotate_word(temp);
+            sub_word(temp);
+            // XOR with Rcon
+            temp[0] ^= r_con[rcon_index];
+            rcon_index++;
+        }
+
+        // XOR temp with the word 4 words before
+        int prev_word_offset = (current_word - 4) * 4;
+        temp[0] ^= expanded[prev_word_offset + 0];
+        temp[1] ^= expanded[prev_word_offset + 1];
+        temp[2] ^= expanded[prev_word_offset + 2];
+        temp[3] ^= expanded[prev_word_offset + 3];
+
+        // Store temp into expanded
+        int dest_offset = current_word * 4;
+        expanded[dest_offset + 0] = temp[0];
+        expanded[dest_offset + 1] = temp[1];
+        expanded[dest_offset + 2] = temp[2];
+        expanded[dest_offset + 3] = temp[3];
+
+        current_word++;
+    }
+
+    return expanded; // The 176 bytes
+}
 
 unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
     // TODO: Implement me!
@@ -221,7 +294,6 @@ unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
         (unsigned char *)malloc(sizeof(unsigned char) * BLOCK_SIZE);
     return output;
   }
-
   
   unsigned char *aes_decrypt_block(unsigned char *ciphertext,
                                    unsigned char *key) {
@@ -230,3 +302,4 @@ unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
         (unsigned char *)malloc(sizeof(unsigned char) * BLOCK_SIZE);
     return output;
   }
+  
